@@ -28,9 +28,7 @@ steps:
           PROJECT=$$(gcloud config get-value core/project)
           ZONE=$$(gcloud config get-value compute/zone)
           
-          gcloud container clusters get-credentials "$${CLUSTER}" \
-            --project "$${PROJECT}" \
-            --zone "$${ZONE}"
+          gcloud container clusters get-credentials "$${CLUSTER}" --project "$${PROJECT}" --zone "$${ZONE}"
           sed -i 's|gcr.io/project-id/myreact-app|gcr.io/$PROJECT_ID/myreact-app:$SHORT_SHA|' ./deployment.yaml
           kubectl apply -f ./deployment.yaml
 timeout: 2000s
