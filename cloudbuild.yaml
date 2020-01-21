@@ -5,9 +5,9 @@ steps:
     - 'build'
     - '-t'
     - 'gcr.io/${PROJECT_ID}/myreact-app:$SHORT_SHA'
-    - './client'
+    - '.'
     - '-f'
-    - './client/Dockerfile'
+    - './Dockerfile'
   timeout: 2000s
 - id: 'push to container registry'
   name: 'gcr.io/cloud-builders/docker'
