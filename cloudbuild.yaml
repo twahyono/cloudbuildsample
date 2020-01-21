@@ -1,0 +1,36 @@
+steps:
+- id: 'build image'
+  name: 'gcr.io/cloud-builders/docker'
+  args: 
+    - 'build'
+    - '-t'
+    - 'gcr.io/${PROJECT_ID}/myreact-app:$SHORT_SHA'
+    - './client'
+    - '-f'
+    - './client/Dockerfile'
+  timeout: 2000s
+- id: 'push to container registry'
+  name: 'gcr.io/cloud-builders/docker'
+  args: 
+    - 'push'
+    - 'gcr.io/${PROJECT_ID}/myreact-app:$SHORT_SHA'
+- id: 'deploy to gke'
+  name: 'gcr.io/cloud-builders/gcloud'
+  env:
+    - 'CLOUDSDK_COMPUTE_ZONE=${_CLOUDSDK_COMPUTE_ZONE}'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLOUDSDK_CONTAINER_CLUSTER}'
+    - 'KUBECONFIG=/.kube/config'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+          CLUSTER=$$(gcloud config get-value container/cluster)
+          PROJECT=$$(gcloud config get-value core/project)
+          ZONE=$$(gcloud config get-value compute/zone)
+          
+          gcloud container clusters get-credentials "$${CLUSTER}" \
+            --project "$${PROJECT}" \
+            --zone "$${ZONE}"
+          sed -i 's|gcr.io/project-id/myreact-app|gcr.io/$PROJECT_ID/myreact-app:$SHORT_SHA|' ./deployment.yaml
+          kubectl apply -f ./deployment.yaml
+timeout: 2000s
